@@ -1,0 +1,6 @@
+package com.chubb.apac.claims.modulith.config.repository;
+import com.chubb.apac.claims.modulith.common.enums.*;import com.chubb.apac.claims.modulith.config.model.*;import java.math.BigDecimal;import org.junit.jupiter.api.Test;import org.springframework.beans.factory.annotation.Autowired;import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;import static org.assertj.core.api.Assertions.assertThat;
+@DataJpaTest class ConfigurationRepositoryTest {
+ @Autowired MarketConfigurationRepository markets;@Autowired ProductConfigurationRepository products;
+ @Test void storesMarketAndProduct(){MarketConfiguration m=new MarketConfiguration();m.setMarket(Market.SG);m.setName("Singapore");m.setCurrency("SGD");m.setLanguage("en");m.setTimezone("Asia/Singapore");m.setCreatedBy("test");m.setUpdatedBy("test");markets.saveAndFlush(m);ProductConfiguration p=new ProductConfiguration();p.setMarket(Market.SG);p.setProductType(ProductType.MOTOR);p.setClaimLimitMin(BigDecimal.ZERO);p.setClaimLimitMax(new BigDecimal("1000"));p.setCreatedBy("test");p.setUpdatedBy("test");products.saveAndFlush(p);assertThat(products.findByMarketAndProductTypeAndActiveTrue(Market.SG,ProductType.MOTOR)).isPresent();}
+}
