@@ -66,3 +66,7 @@ springdoc:
     path: /swagger-ui.html
     enabled: true
   show-actuator: false
+
+cmx:
+  demo:
+    seed-enabled: true
