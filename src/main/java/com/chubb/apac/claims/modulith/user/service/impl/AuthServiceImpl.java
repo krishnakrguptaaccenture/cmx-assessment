@@ -1,0 +1,11 @@
+package com.chubb.apac.claims.modulith.user.service.impl;
+import com.chubb.apac.claims.modulith.common.exception.*;import com.chubb.apac.claims.modulith.common.security.JwtService;import com.chubb.apac.claims.modulith.user.dto.request.*;import com.chubb.apac.claims.modulith.user.dto.response.AuthResponse;import com.chubb.apac.claims.modulith.user.model.*;import com.chubb.apac.claims.modulith.user.repository.UserRepository;import com.chubb.apac.claims.modulith.user.service.*;import org.springframework.security.crypto.password.PasswordEncoder;import org.springframework.stereotype.Service;import org.springframework.transaction.annotation.Transactional;import java.util.*;
+@Service @Transactional
+public class AuthServiceImpl implements AuthService {
+ private final UserRepository users;private final PasswordEncoder passwords;private final JwtService jwt;private final TokenRevocationService revocations;
+ public AuthServiceImpl(UserRepository u,PasswordEncoder p,JwtService j,TokenRevocationService r){users=u;passwords=p;jwt=j;revocations=r;}
+ public AuthResponse register(RegisterClaimantRequest r){String email=r.email().trim().toLowerCase(Locale.ROOT);if(users.existsByEmailIgnoreCase(email))throw new ConflictException("Email already registered");User u=new User();u.setId(UUID.randomUUID().toString());u.setEmail(email);u.setPassword(passwords.encode(r.password()));u.setFullName(r.fullName().trim());u.setPhoneNumber(r.phoneNumber());u.getRoles().add(UserRole.CLAIMANT);users.save(u);return auth(u);}
+ @Transactional(readOnly=true) public AuthResponse login(LoginRequest r){User u=users.findByEmailIgnoreCase(r.email()).filter(User::isActive).orElseThrow(()->new UnauthorizedException("Invalid credentials"));if(!passwords.matches(r.password(),u.getPassword()))throw new UnauthorizedException("Invalid credentials");return auth(u);}
+ public void logout(String header){if(header==null||!header.startsWith("Bearer "))throw new UnauthorizedException("Missing bearer token");String t=header.substring(7);revocations.revoke(t,jwt.expiry(t));}
+ private AuthResponse auth(User u){String t=jwt.generate(u);UserRole role=u.getRoles().iterator().next();return new AuthResponse(t,u.getId(),u.getEmail(),u.getFullName(),role);}
+}
