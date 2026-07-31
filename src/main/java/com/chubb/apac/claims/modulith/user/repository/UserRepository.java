@@ -6,5 +6,5 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User,String> {
   Optional<User> findByEmailIgnoreCase(String email);
   boolean existsByEmailIgnoreCase(String email);
-  Page<User> findDistinctByRolesIn(java.util.Collection<com.chubb.apac.claims.modulith.user.model.UserRole> roles, Pageable pageable);
+  Page<User> findDistinctByRolesIn(java.util.Collection<com.chubb.apac.claims.modulith.common.enums.UserRole> roles, Pageable pageable);
 }

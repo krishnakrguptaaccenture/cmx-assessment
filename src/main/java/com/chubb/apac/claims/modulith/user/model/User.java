@@ -7,6 +7,8 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.LinkedHashSet;
 import java.util.Set;
+import com.chubb.apac.claims.modulith.common.enums.Market;
+import com.chubb.apac.claims.modulith.common.enums.UserRole;
 
 @Entity
 @Table(name="users", indexes={@Index(name="idx_users_email", columnList="email", unique=true)})

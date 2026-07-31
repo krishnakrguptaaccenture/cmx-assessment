@@ -1,18 +1,19 @@
 package com.chubb.apac.claims.modulith.common.security;
-import com.chubb.apac.claims.modulith.user.model.User;
-import io.jsonwebtoken.*;
+import com.chubb.apac.claims.modulith.common.enums.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.time.*;
+import java.time.Instant;
 import java.util.*;
+import javax.crypto.SecretKey;
+import org.springframework.stereotype.Service;
 @Service
 public class JwtService {
  private final SecretKey key; private final long expiration;
- public JwtService(@Value("${spring.security.jwt.secret}") String secret,@Value("${spring.security.jwt.expiration}") long expiration){this.key=Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));this.expiration=expiration;}
- public String generate(User u){Instant now=Instant.now();return Jwts.builder().subject(u.getId()).claim("email",u.getEmail()).claim("roles",u.getRoles().stream().map(Enum::name).toList()).claim("markets",u.getMarkets().stream().map(Enum::name).toList()).claim("teamId",u.getTeamId()).issuedAt(Date.from(now)).expiration(Date.from(now.plusMillis(expiration))).signWith(key).compact();}
- public Claims parse(String token){return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();}
- public Instant expiry(String token){return parse(token).getExpiration().toInstant();}
+ public JwtService(JwtProperties p){key=Keys.hmacShaKeyFor(p.secret().getBytes(StandardCharsets.UTF_8));expiration=p.expiration();}
+ public String generate(JwtClaims c){Instant now=Instant.now();return Jwts.builder().subject(c.userId()).claim("email",c.email()).claim("roles",c.roles().stream().map(Enum::name).toList()).claim("markets",c.markets().stream().map(Enum::name).toList()).claim("teamId",c.teamId()).issuedAt(Date.from(now)).expiration(Date.from(now.plusMillis(expiration))).signWith(key).compact();}
+ public CurrentUser parse(String token){Claims c=Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();return new CurrentUser(c.getSubject(),c.get("email",String.class),enumSet(c.get("roles",List.class),UserRole.class),enumSet(c.get("markets",List.class),Market.class),c.get("teamId",String.class));}
+ public Instant expiry(String token){return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload().getExpiration().toInstant();}
+ private static <E extends Enum<E>> Set<E> enumSet(List<?> values,Class<E> type){if(values==null)return Set.of();Set<E> out=new HashSet<>();for(Object v:values)out.add(Enum.valueOf(type,String.valueOf(v)));return Set.copyOf(out);}
 }

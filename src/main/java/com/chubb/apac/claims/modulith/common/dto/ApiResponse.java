@@ -1,5 +1,8 @@
 package com.chubb.apac.claims.modulith.common.dto;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import java.time.Instant;
-public record ApiResponse<T>(boolean success,T data,Instant timestamp) {
- public static <T> ApiResponse<T> success(T data){ return new ApiResponse<>(true,data,Instant.now()); }
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record ApiResponse<T>(boolean success,T data,ErrorDetail error,Instant timestamp){
+ public static <T> ApiResponse<T> success(T data){return new ApiResponse<>(true,data,null,Instant.now());}
+ public static <T> ApiResponse<T> failure(ErrorDetail error){return new ApiResponse<>(false,null,error,Instant.now());}
 }
