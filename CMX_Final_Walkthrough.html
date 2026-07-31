@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CMX Assessment | Final Walkthrough</title>
+  <style>
+    :root {
+      --navy:#071426; --navy2:#0c1d35; --card:#102746; --card2:#132f54;
+      --blue:#54a7ff; --cyan:#5be7df; --green:#62d49e; --amber:#ffc56b;
+      --red:#ff7a8a; --white:#f6f9ff; --muted:#a9bad2; --line:#294566;
+      --shadow:0 24px 70px rgba(0,0,0,.34);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--navy);color:var(--white);font-family:Inter,Segoe UI,Arial,sans-serif}
+    body:before{content:"";position:fixed;inset:0;background:
+      radial-gradient(circle at 12% 18%,rgba(84,167,255,.17),transparent 31%),
+      radial-gradient(circle at 88% 82%,rgba(91,231,223,.11),transparent 30%),
+      linear-gradient(135deg,#061221,#0a1c34 58%,#08172b);pointer-events:none}
+    .deck{position:relative;width:100%;height:100%}
+    .slide{position:absolute;inset:0;padding:54px 70px 78px;display:grid;grid-template-rows:auto 1fr;gap:26px;opacity:0;transform:translateX(36px) scale(.985);pointer-events:none;transition:.38s ease}
+    .slide.active{opacity:1;transform:none;pointer-events:auto}
+    .eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--cyan);font-weight:700}
+    h1{font-size:clamp(42px,5.2vw,78px);line-height:1.02;margin:8px 0 10px;letter-spacing:-.045em;max-width:1100px}
+    h2{font-size:clamp(31px,3.4vw,52px);line-height:1.08;margin:4px 0 0;letter-spacing:-.035em}
+    h3{margin:0 0 10px;font-size:20px}
+    p{font-size:18px;line-height:1.55;color:var(--muted);margin:0}
+    .lede{font-size:22px;max-width:920px}
+    .content{min-height:0;display:flex;align-items:center}
+    .grid{display:grid;gap:18px;width:100%}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}.g4{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .card{background:linear-gradient(145deg,rgba(19,47,84,.92),rgba(12,29,53,.94));border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:var(--shadow)}
+    .card p,.card li{font-size:15px;line-height:1.48}.card ul{padding-left:18px;margin:10px 0 0}.card li{margin:6px 0;color:var(--muted)}
+    .icon{width:42px;height:42px;border-radius:13px;display:grid;place-items:center;background:rgba(84,167,255,.13);border:1px solid rgba(84,167,255,.28);font-size:22px;margin-bottom:15px}
+    .pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:rgba(255,255,255,.035);border-radius:999px;padding:7px 11px;font-size:12px;color:#d9e6f7;margin:4px}
+    .dot{width:7px;height:7px;border-radius:50%;background:var(--green)}
+    .flow{display:flex;align-items:stretch;gap:10px;width:100%}.step{flex:1;position:relative;padding:19px 15px;border:1px solid var(--line);background:rgba(16,39,70,.88);border-radius:17px;text-align:center}.step strong{display:block;font-size:15px}.step small{display:block;color:var(--muted);margin-top:7px;line-height:1.35}.arrow{display:grid;place-items:center;color:var(--cyan);font-size:24px}
+    .role{border-top:3px solid var(--blue)}.role.staff{border-top-color:var(--green)}.role.manager{border-top-color:var(--amber)}
+    .route{font-family:Consolas,monospace;background:#07182d;border:1px solid #284d79;border-radius:10px;padding:8px 10px;color:#c8e9ff;font-size:13px;display:block;margin:7px 0}
+    .tag{font-size:10px;font-weight:800;letter-spacing:.06em;padding:3px 7px;border-radius:6px;margin-right:6px}.get{background:#185a87}.post{background:#176e55}.put{background:#79601c}
+    .state{padding:18px 14px;border-radius:18px;border:1px solid var(--line);background:rgba(12,29,53,.88);text-align:center;min-width:130px}.state.done{border-color:rgba(98,212,158,.55)}.state.wait{border-color:rgba(255,197,107,.55)}
+    .timeline{display:flex;align-items:center;gap:8px;width:100%;overflow:hidden}.timeline .state{flex:1}.timeline .arrow{flex:0 0 25px}
+    .split{display:grid;grid-template-columns:1.1fr .9fr;gap:24px;width:100%;align-items:center}
+    .metric{font-size:38px;font-weight:800;color:var(--cyan);letter-spacing:-.04em}.metric-label{font-size:13px;color:var(--muted)}
+    .check{display:flex;gap:10px;align-items:flex-start;margin:9px 0;color:var(--muted);font-size:15px}.check b{color:var(--green)}
+    .callout{padding:16px 18px;border-left:4px solid var(--cyan);background:rgba(91,231,223,.07);border-radius:0 14px 14px 0;color:#dbeff3}
+    .demo{counter-reset:demo}.demo .card{position:relative;padding-left:60px}.demo .card:before{counter-increment:demo;content:counter(demo);position:absolute;left:18px;top:18px;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:var(--blue);font-weight:800}
+    .footer{position:fixed;left:0;right:0;bottom:0;height:54px;display:flex;align-items:center;padding:0 28px;background:rgba(4,13,25,.73);backdrop-filter:blur(12px);border-top:1px solid rgba(255,255,255,.08);z-index:20}
+    .progress{height:3px;background:linear-gradient(90deg,var(--blue),var(--cyan));position:absolute;top:0;left:0;transition:.3s}
+    .controls{margin-left:auto;display:flex;gap:8px}.controls button{width:34px;height:34px;border:1px solid var(--line);border-radius:10px;background:#102746;color:white;cursor:pointer;font-size:17px}.controls button:hover{border-color:var(--blue)}
+    .counter{font-size:12px;color:var(--muted)}.brand{font-size:12px;font-weight:700;letter-spacing:.06em;color:#d8e5f5;margin-left:16px}
+    .title-slide{grid-template-rows:1fr}.title-wrap{display:flex;align-items:center;height:100%}.title-line{width:90px;height:5px;border-radius:5px;background:linear-gradient(90deg,var(--blue),var(--cyan));margin:22px 0}
+    .architecture{display:grid;grid-template-columns:.8fr 1.4fr .8fr;gap:18px;width:100%;align-items:center}.arch-col{display:grid;gap:12px}.arch-core{padding:25px}.arch-core .grid{grid-template-columns:repeat(3,1fr)}
+    .mini{padding:13px;border-radius:12px;border:1px solid var(--line);text-align:center;background:#0b203b;font-size:13px}
+    .muted{color:var(--muted)}.accent{color:var(--cyan)}
+    @media(max-width:900px){.slide{padding:34px 28px 70px}.g4,.g3{grid-template-columns:repeat(2,1fr)}.split,.architecture{grid-template-columns:1fr}.flow,.timeline{flex-wrap:wrap}.arrow{transform:rotate(90deg)}.architecture .arrow{display:none}.arch-core .grid{grid-template-columns:repeat(2,1fr)}h1{font-size:44px}}
+    @media print{html,body{overflow:visible}.slide{position:relative;opacity:1!important;transform:none!important;page-break-after:always;height:100vh}.footer{display:none}}
+  </style>
+</head>
+<body>
+<div class="deck" id="deck">
+
+<section class="slide title-slide active">
+  <div class="title-wrap"><div>
+    <div class="eyebrow">Chubb APAC Engineering • Backend Take-Home</div>
+    <h1>From incident report<br/>to claim decision</h1>
+    <div class="title-line"></div>
+    <p class="lede">A contract-first, AI-assisted modular monolith built with Java 17 and Spring Boot 3.2.</p>
+    <div style="margin-top:24px">
+      <span class="pill"><span class="dot"></span> Initial release complete</span>
+      <span class="pill">REST + domain events</span><span class="pill">APAC market controls</span>
+    </div>
+  </div></div>
+</section>
+
+<section class="slide">
+  <header><div class="eyebrow">01 • The problem</div><h2>One journey, three perspectives</h2></header>
+  <div class="content"><div class="grid g3">
+    <div class="card role"><div class="icon">◎</div><h3>Claimant</h3><p>Report an incident, track progress, respond to requests, and receive a decision.</p><ul><li>Visibility without phone or email follow-up</li><li>Ownership-protected access</li><li>Clear state progression</li></ul></div>
+    <div class="card role staff"><div class="icon">⌁</div><h3>Claims staff</h3><p>Pick up incoming work, request evidence, assess risk, and recommend an outcome.</p><ul><li>Market-scoped work queue</li><li>Atomic claim assignment</li><li>Structured assessment workflow</li></ul></div>
+    <div class="card role manager"><div class="icon">◇</div><h3>Manager</h3><p>Review submitted assessments and make the final approve or reject decision.</p><ul><li>Pending review queue</li><li>Market-aware authorisation</li><li>Recorded decision trail</li></ul></div>
+  </div></div>
+</section>
+
+<section class="slide">
+  <header><div class="eyebrow">02 • Design choice</div><h2>Modular monolith now, clear seams for later</h2></header>
+  <div class="content"><div class="architecture">
+    <div class="arch-col"><div class="card"><h3>Entry channels</h3><div class="mini">Claimant REST API</div><div class="mini">Staff REST API</div><div class="mini">Manager REST API</div></div></div>
+    <div class="card arch-core"><h3 style="margin-bottom:18px">Single Spring Boot deployment</h3><div class="grid">
+      <div class="mini">Common</div><div class="mini">User</div><div class="mini">Incident</div>
+      <div class="mini">Claim</div><div class="mini">Information Request</div><div class="mini">Assessment</div>
+      <div class="mini">Configuration</div><div class="mini">Notification</div><div class="mini">Demo / Tests</div>
+    </div><div class="callout" style="margin-top:18px">Modules own their entities and repositories. Cross-module collaboration uses narrow APIs or committed domain events.</div></div>
+    <div class="arch-col"><div class="card"><h3>Platform</h3><div class="mini">H2 / JPA</div><div class="mini">JWT Security</div><div class="mini">OpenAPI</div><div class="mini">Actuator</div></div></div>
+  </div></div>
+</section>
+
+<section class="slide">
+  <header><div class="eyebrow">03 • Module map</div><h2>Each bounded context owns one part of the story</h2></header>
+  <div class="content"><div class="grid g4">
+    <div class="card"><h3>Common</h3><p>Security, API envelopes, errors, shared enums, correlation IDs, base persistence.</p></div>
+    <div class="card"><h3>User</h3><p>Registration, login, logout, roles, profile, JWT claims, staff markets.</p></div>
+    <div class="card"><h3>Incident</h3><p>Incident details, affected items, parties, claimant ownership.</p></div>
+    <div class="card"><h3>Claim</h3><p>Claim lifecycle, status history, assignment, claimant and staff views.</p></div>
+    <div class="card"><h3>Information Request</h3><p>Evidence requests, responses, due dates, concurrency-safe submission.</p></div>
+    <div class="card"><h3>Assessment</h3><p>Drafts, submission, rules, recommendation, manager decision.</p></div>
+    <div class="card"><h3>Configuration</h3><p>Markets, products, limits, SLAs, business rules, seed data.</p></div>
+    <div class="card"><h3>Notification</h3><p>Post-commit event listeners, templates, in-app notification log.</p></div>
+  </div></div>
+</section>
+
+<section class="slide">
+  <header><div class="eyebrow">04 • State flow</div><h2>The claim lifecycle is explicit and guarded</h2></header>
+  <div class="content" style="flex-direction:column;justify-content:center;gap:24px">
+    <div class="timeline">
+      <div class="state"><strong>REPORTED</strong><small>Created from incident</small></div><div class="arrow">→</div>
+      <div class="state"><strong>UNDER_REVIEW</strong><small>Assigned to staff</small></div><div class="arrow">→</div>
+      <div class="state wait"><strong>AWAITING_INFORMATION</strong><small>Optional evidence loop</small></div><div class="arrow">→</div>
+      <div class="state"><strong>READY_FOR_DECISION</strong><small>Assessment submitted</small></div><div class="arrow">→</div>
+      <div class="state done"><strong>APPROVED</strong><small>Manager decision</small></div>
+    </div>
+    <div class="flow"><div class="step"><strong>Alternative outcome</strong><small>READY_FOR_DECISION → REJECTED</small></div><div class="step"><strong>Concurrency</strong><small>Assignment and workflow transitions lock the claim row</small></div><div class="step"><strong>History</strong><small>Every meaningful status transition creates a history record</small></div></div>
+  </div>
+</section>
+
+<section class="slide">
+  <header><div class="eyebrow">05 • API story</div><h2>APIs follow the user journey, not database tables</h2></header>
+  <div class="content"><div class="grid g3">
+    <div class="card role"><h3>Claimant APIs</h3>
+      <span class="route"><span class="tag post">POST</span>/api/v1/incidents</span>
+      <span class="route"><span class="tag get">GET</span>/api/v1/claims</span>
+      <span class="route"><span class="tag get">GET</span>/api/v1/claims/{id}</span>
+      <span class="route"><span class="tag post">POST</span>/claims/{id}/info-requests/{requestId}/submit</span>
+    </div>
+    <div class="card role staff"><h3>Staff APIs</h3>
+      <span class="route"><span class="tag get">GET</span>/api/v1/staff/claims</span>
+      <span class="route"><span class="tag post">POST</span>/staff/claims/{id}/assign</span>
+      <span class="route"><span class="tag post">POST</span>/staff/claims/{id}/info-requests</span>
+      <span class="route"><span class="tag put">PUT</span>/staff/assessments/{id}</span>
+      <span class="route"><span class="tag post">POST</span>/staff/assessments/{id}</span>
+    </div>
+    <div class="card role manager"><h3>Manager + public APIs</h3>
+      <span class="route"><span class="tag get">GET</span>/staff/assessments/pending</span>
+      <span class="route"><span class="tag post">POST</span>/staff/decisions/{id}/approve</span>
+      <span class="route"><span class="tag post">POST</span>/staff/decisions/{id}/reject</span>
+      <span class="route"><span class="tag get">GET</span>/api/v1/config/markets</span>
+      <span class="route"><span class="tag get">GET</span>/config/products/{market}</span>
+    </div>
+  </div></div>
+</section>
+
+<section class="slide">
+  <header><div class="eyebrow">06 • Security</div><h2>Identity, ownership, assignment, and market boundaries</h2></header>
+  <div class="content"><div class="split">
+    <div class="card"><h3>Request guardrail</h3>
+      <div class="flow" style="margin-top:16px"><div class="step"><strong>JWT</strong><small>userId, roles, markets, team</small></div><div class="arrow">→</div><div class="step"><strong>Controller</strong><small>role-level method security</small></div><div class="arrow">→</div><div class="step"><strong>Service</strong><small>business authorisation</small></div><div class="arrow">→</div><div class="step"><strong>Repository</strong><small>owner / market scoped query</small></div></div>
+    </div>
+    <div><div class="check"><b>✓</b><span>Claimant ID comes from the authenticated principal, never the payload.</span></div><div class="check"><b>✓</b><span>Staff can only access claims in assigned JWT markets.</span></div><div class="check"><b>✓</b><span>Assessment and information requests require active claim assignment.</span></div><div class="check"><b>✓</b><span>Revoked tokens are checked by the authentication filter.</span></div><div class="check"><b>✓</b><span>Passwords, tokens, sensitive free text, and decision reasons stay out of logs.</span></div></div>
+  </div></div>
+</section>
+
+<section class="slide">
+  <header><div class="eyebrow">07 • Events</div><h2>Post-commit reactions without premature infrastructure</h2></header>
+  <div class="content"><div style="width:100%">
+    <div class="flow"><div class="step"><strong>IncidentReported</strong><small>Claim created exactly once</small></div><div class="arrow">→</div><div class="step"><strong>InformationRequested</strong><small>In-app notification logged</small></div><div class="arrow">→</div><div class="step"><strong>AssessmentSubmitted</strong><small>Claim ready for decision</small></div><div class="arrow">→</div><div class="step"><strong>DecisionMade</strong><small>Final notification logged</small></div></div>
+    <div class="grid g3" style="margin-top:22px"><div class="card"><h3>Why Spring events?</h3><p>One deployable application, lower operational coupling, fast local demonstration.</p></div><div class="card"><h3>Reliability boundary</h3><p>Listeners run after commit. Notification persistence starts a new transaction.</p></div><div class="card"><h3>Future seam</h3><p>The event contracts can later be translated into Kafka envelopes without changing core use cases.</p></div></div>
+  </div></div>
+</section>
+
+<section class="slide">
+  <header><div class="eyebrow">08 • Demo narrative</div><h2>A smooth walkthrough in seven moves</h2></header>
+  <div class="content"><div class="grid g2 demo">
+    <div class="card"><h3>Authenticate</h3><p>Login as claimant, staff, and manager. Highlight role and market claims.</p></div>
+    <div class="card"><h3>Report</h3><p>Create an incident with an item and party. Show the generated incident and claim.</p></div>
+    <div class="card"><h3>Assign</h3><p>Open the staff queue and atomically assign the reported claim.</p></div>
+    <div class="card"><h3>Request evidence</h3><p>Create an information request, then submit the claimant response.</p></div>
+    <div class="card"><h3>Assess</h3><p>Save a draft, validate it, and submit a recommendation.</p></div>
+    <div class="card"><h3>Decide</h3><p>Approve or reject as manager and show the final state and history.</p></div>
+    <div class="card"><h3>Observe</h3><p>Show notification records, configuration endpoints, H2 data, and actuator health.</p></div>
+    <div class="card"><h3>Explain trade-offs</h3><p>Close with what was deliberately deferred and why.</p></div>
+  </div></div>
+</section>
+
+<section class="slide">
+  <header><div class="eyebrow">09 • Quality</div><h2>Confidence comes from layered checks</h2></header>
+  <div class="content"><div class="grid g3">
+    <div class="card"><div class="metric">Unit</div><div class="metric-label">Service and mapper behaviour</div><ul><li>Happy and negative paths</li><li>Event publication</li><li>Ownership and assignment rules</li></ul></div>
+    <div class="card"><div class="metric">Slice</div><div class="metric-label">Web and persistence contracts</div><ul><li>MockMvc request/response</li><li>Validation and status codes</li><li>JPA queries and mappings</li></ul></div>
+    <div class="card"><div class="metric">Smoke</div><div class="metric-label">Whole application wiring</div><ul><li>Context and repository beans</li><li>Seed data</li><li>Hibernate SessionFactory</li></ul></div>
+    <div class="card"><h3>Regression rules learned</h3><p>No duplicate shared enums, no second inherited <code>@Version</code>, explicit imports, ObjectMapper-generated JSON, and dependency-impact review for Common changes.</p></div>
+    <div class="card"><h3>Build gates</h3><span class="route">mvn clean compile</span><span class="route">mvn test</span><span class="route">mvn clean verify</span></div>
+    <div class="card"><h3>AI-native review</h3><p>Architecture and specifications first, module skill, human compilation feedback, root-cause analysis, and explicit acceptance criteria.</p></div>
+  </div></div>
+</section>
+
+<section class="slide">
+  <header><div class="eyebrow">10 • Scope</div><h2>What shipped, what was consciously deferred</h2></header>
+  <div class="content"><div class="grid g2">
+    <div class="card" style="border-color:rgba(98,212,158,.5)"><h3 class="accent">Initial release</h3><div class="grid g2" style="margin-top:12px"><div class="mini">Common + Security</div><div class="mini">User</div><div class="mini">Incident</div><div class="mini">Claim</div><div class="mini">Information Request</div><div class="mini">Assessment</div><div class="mini">Configuration</div><div class="mini">Minimal Notification</div></div></div>
+    <div class="card" style="border-color:rgba(255,197,107,.5)"><h3 style="color:var(--amber)">Deliberately deferred</h3><div class="check"><b>→</b><span><strong>Kafka</strong>: external durability and integrations when independently valuable.</span></div><div class="check"><b>→</b><span><strong>Audit</strong>: field-level snapshots, retention, compliance reporting.</span></div><div class="check"><b>→</b><span><strong>Workload</strong>: dashboards, allocation analytics, SLA monitoring.</span></div><div class="check"><b>→</b><span><strong>Production hardening</strong>: PostgreSQL, Flyway, managed secrets, enterprise identity.</span></div></div>
+  </div></div>
+</section>
+
+<section class="slide">
+  <header><div class="eyebrow">11 • Close</div><h2>A complete core journey with defensible trade-offs</h2></header>
+  <div class="content"><div class="split">
+    <div><h1 style="font-size:56px">Built for the assessment.<br/><span class="accent">Designed to evolve.</span></h1><p class="lede">The implementation prioritises business flow, module ownership, security, and explainability over infrastructure theatre.</p></div>
+    <div class="card"><h3>Three takeaways</h3><div class="check"><b>1</b><span>A working claimant-to-decision vertical slice.</span></div><div class="check"><b>2</b><span>Clear module seams and guarded state transitions.</span></div><div class="check"><b>3</b><span>An AI-native process with human review, challenge, and approval.</span></div><div class="callout" style="margin-top:22px">Next: live demo, design trade-offs, and panel questions.</div></div>
+  </div></div>
+</section>
+
+</div>
+<div class="footer"><div class="progress" id="progress"></div><div class="counter" id="counter">1 / 12</div><div class="brand">CMX ASSESSMENT • FINAL WALKTHROUGH</div><div class="controls"><button id="prev" title="Previous slide">←</button><button id="next" title="Next slide">→</button></div></div>
+<script>
+  const slides=[...document.querySelectorAll('.slide')]; let index=0;
+  const counter=document.getElementById('counter'), progress=document.getElementById('progress');
+  function show(n){index=Math.max(0,Math.min(slides.length-1,n));slides.forEach((s,i)=>s.classList.toggle('active',i===index));counter.textContent=`${index+1} / ${slides.length}`;progress.style.width=`${((index+1)/slides.length)*100}%`;history.replaceState(null,'',`#${index+1}`)}
+  document.getElementById('prev').onclick=()=>show(index-1);document.getElementById('next').onclick=()=>show(index+1);
+  document.addEventListener('keydown',e=>{if(['ArrowRight','PageDown',' '].includes(e.key)){e.preventDefault();show(index+1)}if(['ArrowLeft','PageUp'].includes(e.key)){e.preventDefault();show(index-1)}if(e.key==='Home')show(0);if(e.key==='End')show(slides.length-1)});
+  let touchX=0;document.addEventListener('touchstart',e=>touchX=e.changedTouches[0].screenX);document.addEventListener('touchend',e=>{const d=e.changedTouches[0].screenX-touchX;if(Math.abs(d)>50)show(index+(d<0?1:-1))});
+  const hash=parseInt(location.hash.slice(1),10);if(hash)show(hash-1);else show(0);
+</script>
+</body>
+</html>
