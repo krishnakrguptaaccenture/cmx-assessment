@@ -1,0 +1,2 @@
+package com.chubb.apac.claims.modulith.assessment.repository;import com.chubb.apac.claims.modulith.assessment.model.ValidationRule;import com.chubb.apac.claims.modulith.common.enums.*;import java.util.List;import org.springframework.data.jpa.repository.JpaRepository;
+public interface ValidationRuleRepository extends JpaRepository<ValidationRule,String>{List<ValidationRule> findByMarketAndProductTypeAndActiveTrue(Market market,ProductType productType);}

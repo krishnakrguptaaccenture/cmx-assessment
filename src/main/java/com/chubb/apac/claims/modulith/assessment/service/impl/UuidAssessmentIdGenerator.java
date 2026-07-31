@@ -1,0 +1,2 @@
+package com.chubb.apac.claims.modulith.assessment.service.impl;import com.chubb.apac.claims.modulith.assessment.service.AssessmentIdGenerator;import java.util.UUID;import org.springframework.stereotype.Component;
+@Component public class UuidAssessmentIdGenerator implements AssessmentIdGenerator{public String nextAssessmentId(){return "ASM-"+UUID.randomUUID().toString().toUpperCase();}public String nextDecisionId(){return "DEC-"+UUID.randomUUID().toString().toUpperCase();}}

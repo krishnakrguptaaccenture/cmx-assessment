@@ -1,0 +1,2 @@
+package com.chubb.apac.claims.modulith.assessment.repository;import com.chubb.apac.claims.modulith.assessment.model.DecisionRecord;import java.util.Optional;import org.springframework.data.jpa.repository.JpaRepository;
+public interface DecisionRecordRepository extends JpaRepository<DecisionRecord,String>{Optional<DecisionRecord> findByClaimId(String claimId);boolean existsByClaimId(String claimId);}

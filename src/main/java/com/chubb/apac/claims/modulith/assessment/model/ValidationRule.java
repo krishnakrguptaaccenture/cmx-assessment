@@ -1,0 +1,7 @@
+package com.chubb.apac.claims.modulith.assessment.model;
+import com.chubb.apac.claims.modulith.common.enums.*;import com.chubb.apac.claims.modulith.common.model.BaseEntity;import jakarta.persistence.*;
+@Entity @Table(name="validation_rules",indexes=@Index(name="idx_validation_rule_market_product",columnList="market,product_type"))
+public class ValidationRule extends BaseEntity {
+ @Enumerated(EnumType.STRING) @Column(nullable=false,length=2) private Market market;@Enumerated(EnumType.STRING) @Column(name="product_type",nullable=false,length=20) private ProductType productType;@Column(name="rule_key",nullable=false,length=100) private String ruleKey;@Column(name="rule_text",nullable=false,length=1000) private String ruleText;@Enumerated(EnumType.STRING) @Column(nullable=false,length=20) private ValidationSeverity severity;@Column(nullable=false) private boolean active=true;
+ public Market getMarket(){return market;}public void setMarket(Market v){market=v;}public ProductType getProductType(){return productType;}public void setProductType(ProductType v){productType=v;}public String getRuleKey(){return ruleKey;}public void setRuleKey(String v){ruleKey=v;}public String getRuleText(){return ruleText;}public void setRuleText(String v){ruleText=v;}public ValidationSeverity getSeverity(){return severity;}public void setSeverity(ValidationSeverity v){severity=v;}public boolean isActive(){return active;}public void setActive(boolean v){active=v;}
+}

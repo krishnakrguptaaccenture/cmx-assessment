@@ -1,0 +1,7 @@
+package com.chubb.apac.claims.modulith.assessment.model;
+import com.chubb.apac.claims.modulith.common.enums.Decision;import com.chubb.apac.claims.modulith.common.model.BaseEntity;import jakarta.persistence.*;import java.time.Instant;
+@Entity @Table(name="decision_records",indexes=@Index(name="idx_decision_claim",columnList="claim_id",unique=true))
+public class DecisionRecord extends BaseEntity {
+ @Column(name="decision_id",nullable=false,unique=true,updatable=false,length=45) private String decisionId;@Column(name="claim_id",nullable=false,unique=true,updatable=false,length=45) private String claimId;@Enumerated(EnumType.STRING) @Column(nullable=false,length=20) private Decision decision;@Column(nullable=false,length=4000) private String reason;@Column(name="decider_id",nullable=false,updatable=false,length=36) private String deciderId;@Column(name="decision_date",nullable=false,updatable=false) private Instant decisionDate;
+ public String getDecisionId(){return decisionId;}public void setDecisionId(String v){decisionId=v;}public String getClaimId(){return claimId;}public void setClaimId(String v){claimId=v;}public Decision getDecision(){return decision;}public void setDecision(Decision v){decision=v;}public String getReason(){return reason;}public void setReason(String v){reason=v;}public String getDeciderId(){return deciderId;}public void setDeciderId(String v){deciderId=v;}public Instant getDecisionDate(){return decisionDate;}public void setDecisionDate(Instant v){decisionDate=v;}
+}
