@@ -1,0 +1,3 @@
+package com.chubb.apac.claims.modulith.inforequest.mapper;
+import com.chubb.apac.claims.modulith.inforequest.model.*;import java.time.LocalDate;import java.util.List;import org.junit.jupiter.api.Test;import static org.assertj.core.api.Assertions.assertThat;
+class InformationRequestMapperTest {@Test void mapsRequest(){InformationRequest r=new InformationRequest();r.setRequestId("IRQ-1");r.setClaimId("CLM-1");r.setRequestedFields(List.of("Invoice"));r.setDueDate(LocalDate.now());r.setStatus(InformationRequestStatus.PENDING);r.setRequestedBy("S1");var out=new InformationRequestMapper().toResponse(r,List.of());assertThat(out.requestId()).isEqualTo("IRQ-1");assertThat(out.responses()).isEmpty();}}
