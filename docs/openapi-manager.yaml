@@ -1,0 +1,661 @@
+openapi: 3.0.0
+info:
+  title: Chubb APAC Claims Processing - Manager API
+  version: 1.0.0
+  description: API for managers to view dashboards, team performance, and make claim decisions
+  contact:
+    name: Support
+    email: support@chubb-apac.com
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development
+  - url: https://api.chubb-apac.com/api/v1
+    description: Production
+
+paths:
+  /staff/dashboard/workload:
+    get:
+      tags:
+        - Dashboard
+      summary: Get team workload summary
+      operationId: getTeamWorkload
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: teamId
+          in: query
+          schema:
+            type: string
+          required: false
+        - name: market
+          in: query
+          schema:
+            type: string
+          required: false
+      responses:
+        '200':
+          description: Team workload summary
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      teamId:
+                        type: string
+                      totalAssignedClaims:
+                        type: integer
+                      claimsByStatus:
+                        type: object
+                        properties:
+                          UNDER_REVIEW:
+                            type: integer
+                          AWAITING_INFORMATION:
+                            type: integer
+                          READY_FOR_DECISION:
+                            type: integer
+                      averageResolutionTime:
+                        type: number
+                        description: Days
+                      staffMembers:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            staffId:
+                              type: string
+                            name:
+                              type: string
+                            assignedClaimsCount:
+                              type: integer
+                            claimsInProgress:
+                              type: integer
+                            claimsCompleted:
+                              type: integer
+                      lastUpdated:
+                        type: string
+                        format: date-time
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /staff/dashboard/performance:
+    get:
+      tags:
+        - Dashboard
+      summary: Get staff performance metrics
+      operationId: getPerformanceMetrics
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: teamId
+          in: query
+          schema:
+            type: string
+          required: false
+        - name: staffId
+          in: query
+          schema:
+            type: string
+          required: false
+        - name: period
+          in: query
+          schema:
+            type: string
+            enum:
+              - LAST_7_DAYS
+              - LAST_30_DAYS
+              - LAST_90_DAYS
+              - YEAR_TO_DATE
+          required: false
+      responses:
+        '200':
+          description: Performance metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      period:
+                        type: string
+                      teamMetrics:
+                        type: object
+                        properties:
+                          totalClaimsProcessed:
+                            type: integer
+                          averageClaimsPerAssessor:
+                            type: number
+                          totalApprovalRate:
+                            type: number
+                            description: Percentage
+                          totalRejectionRate:
+                            type: number
+                            description: Percentage
+                          averageProcessingTime:
+                            type: number
+                            description: Days
+                      staffPerformance:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            staffId:
+                              type: string
+                            name:
+                              type: string
+                            claimsProcessed:
+                              type: integer
+                            approvedCount:
+                              type: integer
+                            rejectedCount:
+                              type: integer
+                            approvalRate:
+                              type: number
+                              description: Percentage
+                            averageProcessingDays:
+                              type: number
+                            performanceRating:
+                              type: string
+                              enum:
+                                - EXCELLENT
+                                - GOOD
+                                - AVERAGE
+                                - BELOW_AVERAGE
+                      lastUpdated:
+                        type: string
+                        format: date-time
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /staff/dashboard/sla-status:
+    get:
+      tags:
+        - Dashboard
+      summary: Get SLA compliance tracking
+      operationId: getSLAStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: market
+          in: query
+          schema:
+            type: string
+          required: false
+        - name: productType
+          in: query
+          schema:
+            type: string
+            enum:
+              - MOTOR
+              - PROPERTY
+          required: false
+      responses:
+        '200':
+          description: SLA tracking dashboard
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      totalTrackedClaims:
+                        type: integer
+                      slaStatus:
+                        type: object
+                        properties:
+                          onTrack:
+                            type: integer
+                          atRisk:
+                            type: integer
+                          breached:
+                            type: integer
+                      breachPercentage:
+                        type: number
+                      atRiskClaims:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            claimId:
+                              type: string
+                            claimantName:
+                              type: string
+                            assignedStaff:
+                              type: string
+                            slaDeadline:
+                              type: string
+                              format: date
+                            daysRemaining:
+                              type: integer
+                            status:
+                              type: string
+                      breachedClaims:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            claimId:
+                              type: string
+                            claimantName:
+                              type: string
+                            assignedStaff:
+                              type: string
+                            slaDeadline:
+                              type: string
+                              format: date
+                            daysOverdue:
+                              type: integer
+                            status:
+                              type: string
+                      lastUpdated:
+                        type: string
+                        format: date-time
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /staff/team/{teamId}/claims-assigned:
+    get:
+      tags:
+        - Team Management
+      summary: Get all claims assigned to a team
+      operationId: getTeamAssignedClaims
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: teamId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ClaimStatus'
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum:
+              - CREATED_DATE
+              - LAST_UPDATED
+              - ASSIGNED_STAFF
+      responses:
+        '200':
+          description: Team's assigned claims
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClaimListItemResponse'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /staff/claims:
+    get:
+      tags:
+        - Claims Management
+      summary: List all claims (with manager-level filters)
+      operationId: listAllClaimsManager
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ClaimStatus'
+        - name: market
+          in: query
+          schema:
+            type: string
+        - name: productType
+          in: query
+          schema:
+            type: string
+        - name: assignedTo
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of claims
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClaimListItemResponse'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /staff/assessments/pending:
+    get:
+      tags:
+        - Assessment Review
+      summary: List assessments pending manager review
+      operationId: getPendingAssessments
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: market
+          in: query
+          schema:
+            type: string
+        - name: sortBy
+          in: query
+          schema:
+            type: string
+            enum:
+              - SUBMITTED_DATE
+              - CLAIM_CREATED_DATE
+              - ASSESSOR_NAME
+      responses:
+        '200':
+          description: Pending assessments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        assessmentId:
+                          type: string
+                        claimId:
+                          type: string
+                        claimantName:
+                          type: string
+                        assessorName:
+                          type: string
+                        recommendedDecision:
+                          type: string
+                        findings:
+                          type: string
+                        submittedAt:
+                          type: string
+                          format: date-time
+                        daysInReview:
+                          type: integer
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /staff/decisions/{claimId}/approve:
+    post:
+      tags:
+        - Decision Approval
+      summary: Approve a claim
+      operationId: approveClaimDecision
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                approvalReason:
+                  type: string
+              required:
+                - approvalReason
+      responses:
+        '200':
+          description: Claim approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecisionResponse'
+        '400':
+          description: Cannot approve claim
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /staff/decisions/{claimId}/reject:
+    post:
+      tags:
+        - Decision Approval
+      summary: Reject a claim
+      operationId: rejectClaimDecision
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rejectionReason:
+                  type: string
+              required:
+                - rejectionReason
+      responses:
+        '200':
+          description: Claim rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecisionResponse'
+        '400':
+          description: Cannot reject claim
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  schemas:
+    ClaimListItemResponse:
+      type: object
+      properties:
+        claimId:
+          type: string
+        incidentId:
+          type: string
+        claimantName:
+          type: string
+        status:
+          $ref: '#/components/schemas/ClaimStatus'
+        productType:
+          type: string
+          enum:
+            - MOTOR
+            - PROPERTY
+        market:
+          type: string
+        assignedStaffId:
+          type: string
+        assignedStaffName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        lastUpdated:
+          type: string
+          format: date-time
+        daysInProgress:
+          type: integer
+
+    ClaimStatus:
+      type: string
+      enum:
+        - REPORTED
+        - UNDER_REVIEW
+        - AWAITING_INFORMATION
+        - READY_FOR_DECISION
+        - APPROVED
+        - REJECTED
+
+    DecisionResponse:
+      type: object
+      properties:
+        decisionId:
+          type: string
+        claimId:
+          type: string
+        decision:
+          type: string
+          enum:
+            - APPROVED
+            - REJECTED
+        reason:
+          type: string
+        deciderId:
+          type: string
+        deciderName:
+          type: string
+        decisionDate:
+          type: string
+          format: date-time
+        claimStatus:
+          $ref: '#/components/schemas/ClaimStatus'
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+
+  responses:
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Only managers can access this endpoint
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

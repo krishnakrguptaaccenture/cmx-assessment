@@ -1,0 +1,888 @@
+openapi: 3.0.0
+info:
+  title: Chubb APAC Claims Processing - Staff API
+  version: 1.0.0
+  description: API for claims staff to manage, assess, and make decisions on claims
+  contact:
+    name: Support
+    email: support@chubb-apac.com
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development
+  - url: https://api.chubb-apac.com/api/v1
+    description: Production
+
+paths:
+  /staff/claims:
+    get:
+      tags:
+        - ClaimsManagement
+      summary: List all claims (filterable by status, market, etc.)
+      operationId: listAllClaims
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ClaimStatus'
+        - name: market
+          in: query
+          schema:
+            type: string
+        - name: productType
+          in: query
+          schema:
+            type: string
+            enum:
+              - MOTOR
+              - PROPERTY
+        - name: assignedTo
+          in: query
+          schema:
+            type: string
+            description: Filter by assigned staff member
+      responses:
+        '200':
+          description: List of claims
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClaimListItemResponse'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /staff/claims/{claimId}:
+    get:
+      tags:
+        - ClaimsManagement
+      summary: Get claim details for assessment
+      operationId: getClaimForAssessment
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Claim details with full information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClaimDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /staff/claims/{claimId}/assign:
+    post:
+      tags:
+        - ClaimsManagement
+      summary: Assign claim to current user
+      operationId: assignClaimToSelf
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Claim assigned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      claimId:
+                        type: string
+                      assignedStaffId:
+                        type: string
+                      assignedStaffName:
+                        type: string
+                      assignedAt:
+                        type: string
+                        format: date-time
+        '400':
+          description: Cannot assign claim (already assigned, wrong status, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Conflict - claim already assigned to another staff
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /staff/claims/{claimId}/unassign:
+    post:
+      tags:
+        - ClaimsManagement
+      summary: Unassign claim from current user
+      operationId: unassignClaimFromSelf
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Claim unassigned successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      claimId:
+                        type: string
+                      unassignedAt:
+                        type: string
+                        format: date-time
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /staff/claims/{claimId}/info-requests:
+    post:
+      tags:
+        - InformationRequest
+      summary: Create information request for claimant
+      operationId: createInfoRequest
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                requestedFields:
+                  type: array
+                  items:
+                    type: string
+                  description: List of field names/documents requested
+                  example:
+                    - Police Report
+                    - Medical Report
+                    - Invoice
+                dueDate:
+                  type: string
+                  format: date
+                instructions:
+                  type: string
+              required:
+                - requestedFields
+                - dueDate
+      responses:
+        '201':
+          description: Information request created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InformationRequestResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    get:
+      tags:
+        - InformationRequest
+      summary: Get information requests for a claim
+      operationId: getInfoRequestsForClaim
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of information requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InformationRequestDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /staff/assessments/{claimId}:
+    post:
+      tags:
+        - Assessment
+      summary: Submit claim assessment
+      operationId: submitAssessment
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubmitAssessmentRequest'
+      responses:
+        '201':
+          description: Assessment submitted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/AssessmentResponse'
+        '400':
+          description: Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '409':
+          description: Assessment already exists for this claim
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    get:
+      tags:
+        - Assessment
+      summary: Get assessment for a claim
+      operationId: getAssessment
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Assessment details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Assessment
+      summary: Update assessment before submission
+      operationId: updateAssessment
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateAssessmentRequest'
+      responses:
+        '200':
+          description: Assessment updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AssessmentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /staff/assessments/{claimId}/validate:
+    post:
+      tags:
+        - Assessment
+      summary: Validate assessment against business rules
+      operationId: validateAssessment
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Validation result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    type: object
+                    properties:
+                      isValid:
+                        type: boolean
+                      validationErrors:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            code:
+                              type: string
+                            message:
+                              type: string
+                            severity:
+                              type: string
+                              enum:
+                                - ERROR
+                                - WARNING
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /staff/decisions/{claimId}/approve:
+    post:
+      tags:
+        - Decision
+      summary: Approve claim (Manager only)
+      operationId: approveDecision
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                approvalReason:
+                  type: string
+              required:
+                - approvalReason
+      responses:
+        '200':
+          description: Claim approved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecisionResponse'
+        '400':
+          description: Cannot approve (missing assessment, validation errors, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Only managers can approve claims
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /staff/decisions/{claimId}/reject:
+    post:
+      tags:
+        - Decision
+      summary: Reject claim (Manager only)
+      operationId: rejectDecision
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rejectionReason:
+                  type: string
+              required:
+                - rejectionReason
+      responses:
+        '200':
+          description: Claim rejected
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecisionResponse'
+        '400':
+          description: Cannot reject (missing assessment, etc.)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          description: Only managers can reject claims
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /staff/decisions/{claimId}:
+    get:
+      tags:
+        - Decision
+      summary: Get decision details for a claim
+      operationId: getDecision
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Decision details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecisionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+components:
+  schemas:
+    ClaimListItemResponse:
+      type: object
+      properties:
+        claimId:
+          type: string
+        incidentId:
+          type: string
+        claimantName:
+          type: string
+        status:
+          $ref: '#/components/schemas/ClaimStatus'
+        productType:
+          type: string
+          enum:
+            - MOTOR
+            - PROPERTY
+        market:
+          type: string
+        assignedStaffId:
+          type: string
+        assignedStaffName:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        lastUpdated:
+          type: string
+          format: date-time
+        daysInProgress:
+          type: integer
+
+    ClaimDetailResponse:
+      type: object
+      properties:
+        claimId:
+          type: string
+        incidentId:
+          type: string
+        claimantId:
+          type: string
+        claimantName:
+          type: string
+        claimantEmail:
+          type: string
+        claimantPhone:
+          type: string
+        status:
+          $ref: '#/components/schemas/ClaimStatus'
+        productType:
+          type: string
+        market:
+          type: string
+        assignedStaffId:
+          type: string
+        assignedStaffName:
+          type: string
+        incident:
+          type: object
+          properties:
+            incidentId:
+              type: string
+            reportDate:
+              type: string
+              format: date-time
+            incidentType:
+              type: string
+            location:
+              type: string
+            description:
+              type: string
+            claimItems:
+              type: array
+              items:
+                type: object
+                properties:
+                  itemType:
+                    type: string
+                  description:
+                    type: string
+                  estimatedValue:
+                    type: number
+        statusHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              oldStatus:
+                type: string
+              newStatus:
+                type: string
+              reason:
+                type: string
+              changedBy:
+                type: string
+              changedAt:
+                type: string
+                format: date-time
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ClaimStatus:
+      type: string
+      enum:
+        - REPORTED
+        - UNDER_REVIEW
+        - AWAITING_INFORMATION
+        - READY_FOR_DECISION
+        - APPROVED
+        - REJECTED
+
+    InformationRequestResponse:
+      type: object
+      properties:
+        requestId:
+          type: string
+        claimId:
+          type: string
+        requestedFields:
+          type: array
+          items:
+            type: string
+        dueDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+            - PENDING
+            - SUBMITTED
+            - RECEIVED
+            - CLARIFICATION_NEEDED
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+
+    InformationRequestDetailResponse:
+      type: object
+      properties:
+        requestId:
+          type: string
+        claimId:
+          type: string
+        requestedFields:
+          type: array
+          items:
+            type: string
+        dueDate:
+          type: string
+          format: date
+        status:
+          type: string
+        instructions:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        createdBy:
+          type: string
+        responses:
+          type: array
+          items:
+            type: object
+            properties:
+              responseId:
+                type: string
+              response:
+                type: string
+              submittedAt:
+                type: string
+                format: date-time
+
+    SubmitAssessmentRequest:
+      type: object
+      properties:
+        findings:
+          type: string
+          description: Detailed assessment findings
+        recommendedDecision:
+          type: string
+          enum:
+            - APPROVE
+            - REJECT
+            - REQUEST_MORE_INFO
+        recommendationReason:
+          type: string
+        estimatedLiability:
+          type: number
+          format: double
+        riskFactors:
+          type: array
+          items:
+            type: string
+      required:
+        - findings
+        - recommendedDecision
+        - recommendationReason
+
+    UpdateAssessmentRequest:
+      type: object
+      properties:
+        findings:
+          type: string
+        recommendedDecision:
+          type: string
+          enum:
+            - APPROVE
+            - REJECT
+            - REQUEST_MORE_INFO
+        recommendationReason:
+          type: string
+        estimatedLiability:
+          type: number
+
+    AssessmentResponse:
+      type: object
+      properties:
+        assessmentId:
+          type: string
+        claimId:
+          type: string
+        assessorId:
+          type: string
+        assessorName:
+          type: string
+        findings:
+          type: string
+        recommendedDecision:
+          type: string
+        recommendationReason:
+          type: string
+        estimatedLiability:
+          type: number
+        riskFactors:
+          type: array
+          items:
+            type: string
+        status:
+          type: string
+          enum:
+            - IN_PROGRESS
+            - SUBMITTED
+            - APPROVED_BY_MANAGER
+            - REJECTED_BY_MANAGER
+        submittedAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    DecisionResponse:
+      type: object
+      properties:
+        decisionId:
+          type: string
+        claimId:
+          type: string
+        decision:
+          type: string
+          enum:
+            - APPROVED
+            - REJECTED
+        reason:
+          type: string
+        deciderId:
+          type: string
+        deciderName:
+          type: string
+        decisionDate:
+          type: string
+          format: date-time
+        claimStatus:
+          $ref: '#/components/schemas/ClaimStatus'
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Forbidden:
+      description: Insufficient permissions
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

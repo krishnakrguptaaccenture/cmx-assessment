@@ -1,0 +1,822 @@
+openapi: 3.0.0
+info:
+  title: Chubb APAC Claims Processing - Claimant API
+  version: 1.0.0
+  description: API for claimants to report incidents and track their claims
+  contact:
+    name: Support
+    email: support@chubb-apac.com
+
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local development
+  - url: https://api.chubb-apac.com/api/v1
+    description: Production
+
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: Register as a new claimant
+      operationId: registerClaimant
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                fullName:
+                  type: string
+                phoneNumber:
+                  type: string
+              required:
+                - email
+                - password
+                - fullName
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          description: Email already registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: Login and get JWT token
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+              required:
+                - email
+                - password
+      responses:
+        '200':
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /users/profile:
+    get:
+      tags:
+        - User
+      summary: Get current user profile
+      operationId: getProfile
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: User profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    put:
+      tags:
+        - User
+      summary: Update current user profile
+      operationId: updateProfile
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                fullName:
+                  type: string
+                phoneNumber:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /incidents:
+    post:
+      tags:
+        - Incident
+      summary: Report a new incident
+      operationId: reportIncident
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIncidentRequest'
+      responses:
+        '201':
+          description: Incident created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /incidents/{incidentId}:
+    get:
+      tags:
+        - Incident
+      summary: Get incident details
+      operationId: getIncident
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: incidentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Incident details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+    put:
+      tags:
+        - Incident
+      summary: Update incident information
+      operationId: updateIncident
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: incidentId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateIncidentRequest'
+      responses:
+        '200':
+          description: Incident updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /incidents/{incidentId}/parties:
+    post:
+      tags:
+        - Incident
+      summary: Add parties to incident
+      operationId: addIncidentParty
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: incidentId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateIncidentPartyRequest'
+      responses:
+        '201':
+          description: Party added
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IncidentPartyResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+    get:
+      tags:
+        - Incident
+      summary: List incident parties
+      operationId: listIncidentParties
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: incidentId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of parties
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/IncidentPartyResponse'
+
+  /claims:
+    get:
+      tags:
+        - Claim
+      summary: List claimant's claims
+      operationId: listClaimantClaims
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 0
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/ClaimStatus'
+      responses:
+        '200':
+          description: List of claims
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ClaimResponse'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /claims/{claimId}:
+    get:
+      tags:
+        - Claim
+      summary: Get claim details
+      operationId: getClaim
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Claim details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ClaimDetailResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /claims/{claimId}/status:
+    get:
+      tags:
+        - Claim
+      summary: Get current claim status
+      operationId: getClaimStatus
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Claim status
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  claimId:
+                    type: string
+                  status:
+                    $ref: '#/components/schemas/ClaimStatus'
+                  lastUpdated:
+                    type: string
+                    format: date-time
+
+  /claims/{claimId}/info-requests:
+    get:
+      tags:
+        - InformationRequest
+      summary: List pending information requests
+      operationId: listInfoRequests
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of information requests
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/InformationRequestResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /claims/{claimId}/info-requests/{requestId}/submit:
+    post:
+      tags:
+        - InformationRequest
+      summary: Submit response to information request
+      operationId: submitInfoResponse
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: claimId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: requestId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                response:
+                  type: string
+              required:
+                - response
+      responses:
+        '200':
+          description: Response submitted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InformationResponseResponse'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+components:
+  schemas:
+    AuthResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        data:
+          type: object
+          properties:
+            token:
+              type: string
+            userId:
+              type: string
+            email:
+              type: string
+            fullName:
+              type: string
+            role:
+              $ref: '#/components/schemas/UserRole'
+        timestamp:
+          type: string
+          format: date-time
+
+    UserResponse:
+      type: object
+      properties:
+        userId:
+          type: string
+        email:
+          type: string
+        fullName:
+          type: string
+        phoneNumber:
+          type: string
+        role:
+          $ref: '#/components/schemas/UserRole'
+        createdAt:
+          type: string
+          format: date-time
+
+    UserRole:
+      type: string
+      enum:
+        - CLAIMANT
+        - CLAIMS_STAFF
+        - MANAGER
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            details:
+              type: array
+              items:
+                type: object
+                properties:
+                  field:
+                    type: string
+                  message:
+                    type: string
+        timestamp:
+          type: string
+          format: date-time
+
+    CreateIncidentRequest:
+      type: object
+      properties:
+        reportDate:
+          type: string
+          format: date-time
+        incidentType:
+          type: string
+          enum:
+            - MOTOR_ACCIDENT
+            - PROPERTY_DAMAGE
+            - THIRD_PARTY_CLAIM
+        location:
+          type: string
+        description:
+          type: string
+        market:
+          type: string
+          enum:
+            - SG
+            - MY
+            - TH
+            - ID
+            - PH
+            - VN
+        claimItems:
+          type: array
+          items:
+            type: object
+            properties:
+              itemType:
+                type: string
+                enum:
+                  - MOTOR_VEHICLE
+                  - PROPERTY
+                  - PERSON
+              description:
+                type: string
+              estimatedValue:
+                type: number
+      required:
+        - reportDate
+        - incidentType
+        - location
+        - description
+        - market
+
+    UpdateIncidentRequest:
+      type: object
+      properties:
+        description:
+          type: string
+        location:
+          type: string
+
+    IncidentResponse:
+      type: object
+      properties:
+        incidentId:
+          type: string
+        claimantId:
+          type: string
+        reportDate:
+          type: string
+          format: date-time
+        incidentType:
+          type: string
+        location:
+          type: string
+        description:
+          type: string
+        market:
+          type: string
+        status:
+          type: string
+          enum:
+            - REPORTED
+            - UNDER_REVIEW
+            - CLAIM_CREATED
+        claimItems:
+          type: array
+          items:
+            type: object
+            properties:
+              itemType:
+                type: string
+              description:
+                type: string
+              estimatedValue:
+                type: number
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    CreateIncidentPartyRequest:
+      type: object
+      properties:
+        partyType:
+          type: string
+          enum:
+            - CLAIMANT
+            - THIRD_PARTY
+            - WITNESS
+        fullName:
+          type: string
+        email:
+          type: string
+        phoneNumber:
+          type: string
+        relationshipType:
+          type: string
+        statement:
+          type: string
+      required:
+        - partyType
+        - fullName
+        - email
+
+    IncidentPartyResponse:
+      type: object
+      properties:
+        partyId:
+          type: string
+        incidentId:
+          type: string
+        partyType:
+          type: string
+        fullName:
+          type: string
+        email:
+          type: string
+        phoneNumber:
+          type: string
+        relationshipType:
+          type: string
+        statement:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+
+    ClaimResponse:
+      type: object
+      properties:
+        claimId:
+          type: string
+        incidentId:
+          type: string
+        status:
+          $ref: '#/components/schemas/ClaimStatus'
+        productType:
+          type: string
+          enum:
+            - MOTOR
+            - PROPERTY
+        market:
+          type: string
+        assignedStaffId:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ClaimDetailResponse:
+      type: object
+      properties:
+        claimId:
+          type: string
+        incidentId:
+          type: string
+        claimantId:
+          type: string
+        status:
+          $ref: '#/components/schemas/ClaimStatus'
+        productType:
+          type: string
+        market:
+          type: string
+        assignedStaffId:
+          type: string
+        assignedStaffName:
+          type: string
+        statusHistory:
+          type: array
+          items:
+            type: object
+            properties:
+              oldStatus:
+                type: string
+              newStatus:
+                type: string
+              reason:
+                type: string
+              changedBy:
+                type: string
+              changedAt:
+                type: string
+                format: date-time
+        createdAt:
+          type: string
+          format: date-time
+
+    ClaimStatus:
+      type: string
+      enum:
+        - REPORTED
+        - UNDER_REVIEW
+        - AWAITING_INFORMATION
+        - READY_FOR_DECISION
+        - APPROVED
+        - REJECTED
+
+    InformationRequestResponse:
+      type: object
+      properties:
+        requestId:
+          type: string
+        claimId:
+          type: string
+        requestedFields:
+          type: array
+          items:
+            type: string
+        dueDate:
+          type: string
+          format: date
+        status:
+          type: string
+          enum:
+            - PENDING
+            - SUBMITTED
+            - RECEIVED
+            - CLARIFICATION_NEEDED
+        createdAt:
+          type: string
+          format: date-time
+
+    InformationResponseResponse:
+      type: object
+      properties:
+        responseId:
+          type: string
+        requestId:
+          type: string
+        claimId:
+          type: string
+        response:
+          type: string
+        submittedAt:
+          type: string
+          format: date-time
+
+    Pagination:
+      type: object
+      properties:
+        page:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+        totalPages:
+          type: integer
+
+  responses:
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    Unauthorized:
+      description: Missing or invalid authentication token
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
