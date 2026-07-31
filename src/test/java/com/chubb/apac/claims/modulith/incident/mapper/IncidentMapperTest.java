@@ -1,0 +1,3 @@
+package com.chubb.apac.claims.modulith.incident.mapper;
+import com.chubb.apac.claims.modulith.common.enums.Market;import com.chubb.apac.claims.modulith.incident.model.*;import java.time.Instant;import org.junit.jupiter.api.Test;import static org.assertj.core.api.Assertions.assertThat;
+class IncidentMapperTest {@Test void mapsIncident(){Incident i=new Incident();i.setIncidentId("INC-1");i.setClaimantId("U1");i.setReportDate(Instant.EPOCH);i.setIncidentType(IncidentType.PROPERTY_DAMAGE);i.setLocation("L");i.setDescription("D");i.setMarket(Market.SG);i.setStatus(IncidentStatus.REPORTED);var out=new IncidentMapper().toResponse(i);assertThat(out.incidentId()).isEqualTo("INC-1");assertThat(out.claimItems()).isEmpty();}}
