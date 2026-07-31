@@ -1,0 +1,8 @@
+package com.chubb.apac.claims.modulith.claim.controller;
+import com.chubb.apac.claims.modulith.claim.dto.response.*;import com.chubb.apac.claims.modulith.claim.service.ClaimService;import com.chubb.apac.claims.modulith.common.dto.*;import com.chubb.apac.claims.modulith.common.enums.ClaimStatus;import com.chubb.apac.claims.modulith.common.security.CurrentUser;import org.springframework.data.domain.PageRequest;import org.springframework.security.access.prepost.PreAuthorize;import org.springframework.security.core.annotation.AuthenticationPrincipal;import org.springframework.web.bind.annotation.*;
+@RestController @RequestMapping("/api/v1/claims") @PreAuthorize("hasRole('CLAIMANT')")
+public class ClaimantClaimController {private final ClaimService service;public ClaimantClaimController(ClaimService service){this.service=service;}
+ @GetMapping public PageResponse<ClaimResponse> list(@AuthenticationPrincipal CurrentUser user,@RequestParam(defaultValue="0") int page,@RequestParam(defaultValue="10") int size,@RequestParam(required=false) ClaimStatus status){return service.listForClaimant(user.userId(),status,PageRequest.of(page,size));}
+ @GetMapping("/{claimId}") public ApiResponse<ClaimDetailResponse> get(@AuthenticationPrincipal CurrentUser user,@PathVariable String claimId){return ApiResponse.success(service.getForClaimant(user.userId(),claimId));}
+ @GetMapping("/{claimId}/status") public ApiResponse<ClaimStatusResponse> status(@AuthenticationPrincipal CurrentUser user,@PathVariable String claimId){return ApiResponse.success(service.getStatusForClaimant(user.userId(),claimId));}
+}

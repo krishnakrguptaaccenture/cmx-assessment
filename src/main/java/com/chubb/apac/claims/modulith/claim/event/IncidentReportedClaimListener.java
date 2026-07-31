@@ -1,0 +1,3 @@
+package com.chubb.apac.claims.modulith.claim.event;
+import com.chubb.apac.claims.modulith.claim.service.ClaimCreationService;import com.chubb.apac.claims.modulith.incident.event.IncidentReportedEvent;import org.springframework.stereotype.Component;import org.springframework.transaction.event.*;
+@Component public class IncidentReportedClaimListener {private final ClaimCreationService service;public IncidentReportedClaimListener(ClaimCreationService service){this.service=service;}@TransactionalEventListener(phase=TransactionPhase.AFTER_COMMIT) public void on(IncidentReportedEvent event){service.createFromIncident(event);}}
